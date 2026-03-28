@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root {
+  --scale: 1;
   --bg: #0a0a0f;
   --surface: #13131a;
   --surface2: #1a1a24;
@@ -91,6 +92,41 @@ html, body {
 
 .view-btn:hover { border-color: var(--accent4); color: var(--text); }
 .view-btn.active { background: var(--accent4); border-color: var(--accent4); color: #000; font-weight: 700; }
+
+/* Zoom controls */
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-left: 1px solid var(--border);
+  padding-left: 12px;
+}
+
+.zoom-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  width: 30px; height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.zoom-btn:hover { border-color: var(--accent4); color: var(--text); }
+
+.zoom-level {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  min-width: 36px;
+  text-align: center;
+}
 
 /* Legend bar */
 .legend-bar {
@@ -425,6 +461,7 @@ html, body {
   .header-tagline { font-size: 0.65rem; }
   .view-switcher { width: 100%; justify-content: center; }
   .view-btn { padding: 8px 16px; font-size: 0.8rem; }
+  .zoom-controls { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 8px; justify-content: center; width: 100%; }
   
   .legend-bar { padding: 8px 12px; gap: 4px; }
   .legend-item { font-size: 0.65rem; padding: 4px 6px; }
@@ -477,10 +514,17 @@ html, body {
       <h1>故事結構理論對照</h1>
       <span class="header-tagline">Comparative Story Structure Framework</span>
     </div>
-    <div class="view-switcher">
-      <button class="view-btn active" onclick="switchView('timeline')">時間軸</button>
-      <button class="view-btn" onclick="switchView('circle')">環形圖</button>
-      <button class="view-btn" onclick="switchView('table')">表格</button>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;">
+      <div class="view-switcher">
+        <button class="view-btn active" onclick="switchView('timeline')">時間軸</button>
+        <button class="view-btn" onclick="switchView('circle')">環形圖</button>
+        <button class="view-btn" onclick="switchView('table')">表格</button>
+      </div>
+      <div class="zoom-controls">
+        <button class="zoom-btn" onclick="changeZoom(-1)" title="縮小字體">A−</button>
+        <span class="zoom-level" id="zoomLevel">100%</span>
+        <button class="zoom-btn" onclick="changeZoom(1)" title="放大字體">A+</button>
+      </div>
     </div>
   </div>
 
@@ -897,6 +941,21 @@ document.addEventListener('touchstart', function(e) {
     hideTip();
   }
 });
+
+// Zoom
+const ZOOM_STEPS = [80, 90, 100, 110, 120, 135, 150];
+let zoomIndex = 2; // default 100%
+
+function changeZoom(dir) {
+  zoomIndex = Math.max(0, Math.min(ZOOM_STEPS.length - 1, zoomIndex + dir));
+  const pct = ZOOM_STEPS[zoomIndex];
+  document.documentElement.style.fontSize = (pct / 100 * 16) + 'px';
+  document.getElementById('zoomLevel').textContent = pct + '%';
+  // re-render circle since SVG uses absolute font-size
+  if (document.getElementById('view-circle').classList.contains('active')) {
+    renderCircle();
+  }
+}
 
 // Init
 buildLegend();
