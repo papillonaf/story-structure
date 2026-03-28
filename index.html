@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-CHTFQ51S8P"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-CHTFQ51S8P');
-</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>故事結構理論對照工具</title>
@@ -584,6 +575,12 @@ html, body {
   
   /* Touch-friendly: make segments and arcs respond to tap */
   .timeline-segment { min-height: 36px; }
+  
+  /* Case elements mobile */
+  .timeline-case-divider { margin-left: 100px; }
+  .timeline-case-header { padding-left: 100px; font-size: 0.58rem; white-space: nowrap; overflow-x: auto; }
+  .case-bar { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+  .case-btn { flex-shrink: 0; }
 }
 
 @media (max-width: 480px) {
@@ -592,6 +589,10 @@ html, body {
   .legend-item { font-size: 0.6rem; }
   .timeline { min-width: 600px; }
   .timeline-label { width: 80px; font-size: 0.55rem; }
+  .timeline-case-divider { margin-left: 80px; }
+  .timeline-case-header { padding-left: 80px; font-size: 0.52rem; }
+  .case-btn { font-size: 0.6rem; padding: 3px 6px; }
+  .case-bar-label { font-size: 0.6rem; }
 }
 </style>
 </head>
@@ -1363,8 +1364,12 @@ function showTip(e, el, theory, title, desc, pos) {
 
 function moveTip(e) {
   const tt = document.getElementById('tooltip');
-  tt.style.left = Math.min(e.clientX + 14, window.innerWidth - 320) + 'px';
-  tt.style.top = Math.min(e.clientY - 8, window.innerHeight - 110) + 'px';
+  const maxW = Math.min(300, window.innerWidth - 24);
+  tt.style.maxWidth = maxW + 'px';
+  const left = Math.max(8, Math.min(e.clientX + 14, window.innerWidth - maxW - 12));
+  const top = Math.max(8, Math.min(e.clientY - 8, window.innerHeight - 120));
+  tt.style.left = left + 'px';
+  tt.style.top = top + 'px';
 }
 
 function hideTip() { document.getElementById('tooltip').classList.remove('show'); }
@@ -1381,20 +1386,33 @@ function switchView(view) {
 // Keyboard: Escape closes modal
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-// Touch support for mobile - tap on segments to show tooltip
+// Touch support for mobile - tap on segments and SVG arcs to show tooltip
 document.addEventListener('touchstart', function(e) {
   const seg = e.target.closest('.timeline-segment');
   if (seg) {
     e.preventDefault();
     const touch = e.touches[0];
     showTip({clientX: touch.clientX, clientY: touch.clientY}, seg);
-    setTimeout(hideTip, 3000);
+    setTimeout(hideTip, 3500);
+    return;
+  }
+  // SVG path arcs — simulate the mouseenter by dispatching it
+  const svgPath = e.target.closest('path[style*="cursor:pointer"]');
+  if (svgPath) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent('mouseenter', {
+      clientX: touch.clientX, clientY: touch.clientY,
+      bubbles: true
+    });
+    svgPath.dispatchEvent(mouseEvent);
+    setTimeout(hideTip, 3500);
   }
 }, {passive: false});
 
 // Tap anywhere else to dismiss tooltip on mobile
 document.addEventListener('touchstart', function(e) {
-  if (!e.target.closest('.timeline-segment') && !e.target.closest('.tooltip')) {
+  if (!e.target.closest('.timeline-segment') && !e.target.closest('.tooltip') && !e.target.closest('path[style*="cursor:pointer"]')) {
     hideTip();
   }
 });
