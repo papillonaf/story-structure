@@ -12,7 +12,8 @@ import { renderTable } from './views/table.js';
 const state = {
   activeTheories: new Set(theories.map(t => t.id)),
   currentCircleTheory: 'story-circle',
-  activeCases: new Set()
+  activeCases: new Set(),
+  mode: localStorage.getItem('storyMode') || 'film'
 };
 
 // ===== Coordinators =====
@@ -24,16 +25,17 @@ function toggleTheory(id) {
     state.activeTheories.add(id);
   }
   buildLegend(theories, state.activeTheories, toggleTheory, showModal);
-  renderTimeline(theories, state.activeTheories, cases, state.activeCases, caseTheories);
-  renderTable(theories, state.activeTheories, cases, state.activeCases, caseTheories);
+  renderTimeline(theories, activeTheoriesForMode(), cases, state.activeCases, caseTheories);
+  renderTable(theories, activeTheoriesForMode(), cases, state.activeCases, caseTheories);
 }
 
 function toggleCase(id) {
   if (state.activeCases.has(id)) state.activeCases.delete(id);
   else state.activeCases.add(id);
   buildCaseBar();
-  renderTimeline(theories, state.activeTheories, cases, state.activeCases, caseTheories);
-  renderTable(theories, state.activeTheories, cases, state.activeCases, caseTheories);
+  buildFilmBar();
+  renderTimeline(theories, activeTheoriesForMode(), cases, state.activeCases, caseTheories);
+  renderTable(theories, activeTheoriesForMode(), cases, state.activeCases, caseTheories);
   renderCircle(theories, state.currentCircleTheory, cases, state.activeCases, caseTheories);
 }
 
@@ -50,6 +52,83 @@ function switchView(view) {
   document.querySelector(`.view-btn[data-view="${view}"]`).classList.add('active');
   if (view === 'circle') {
     renderCircleSelector(theories, state.currentCircleTheory, selectCircleTheory);
+    renderCircle(theories, state.currentCircleTheory, cases, state.activeCases, caseTheories);
+  }
+}
+
+function activeTheoriesForMode() {
+  return state.mode === 'film' ? new Set() : state.activeTheories;
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `${r}, ${g}, ${b}`;
+}
+
+function buildFilmBar() {
+  const el = document.getElementById('filmBar');
+  el.innerHTML = '';
+  cases.forEach(c => {
+    const active = state.activeCases.has(c.id);
+    const card = document.createElement('div');
+    card.className = `film-card${active ? ' active' : ''}`;
+    if (active) {
+      card.style.background = `rgba(${hexToRgb(c.color)}, 0.12)`;
+      card.style.borderColor = c.color;
+    }
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'film-card-title';
+
+    const dot = document.createElement('span');
+    dot.className = 'film-card-dot';
+    dot.style.background = c.color;
+
+    titleEl.appendChild(dot);
+    titleEl.appendChild(document.createTextNode(c.title));
+
+    const metaEl = document.createElement('div');
+    metaEl.className = 'film-card-meta';
+    metaEl.textContent = `${c.titleEn}　${c.year}`;
+
+    card.appendChild(titleEl);
+    card.appendChild(metaEl);
+    card.addEventListener('click', () => toggleCase(c.id));
+    el.appendChild(card);
+  });
+}
+
+function applyModeUI() {
+  const mode = state.mode;
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+  const legendEl = document.getElementById('legend');
+  const caseBarEl = document.getElementById('caseBar');
+  const filmBarEl = document.getElementById('filmBar');
+  if (mode === 'film') {
+    legendEl.style.display = 'none';
+    caseBarEl.style.display = 'none';
+    filmBarEl.classList.add('visible');
+  } else {
+    legendEl.style.display = '';
+    caseBarEl.style.display = '';
+    filmBarEl.classList.remove('visible');
+  }
+}
+
+function switchMode(mode) {
+  state.mode = mode;
+  localStorage.setItem('storyMode', mode);
+  applyModeUI();
+  if (mode === 'film' && state.activeCases.size === 0 && cases.length > 0) {
+    state.activeCases.add(cases[0].id);
+    buildCaseBar();
+    buildFilmBar();
+    renderTimeline(theories, state.activeTheories, cases, state.activeCases, caseTheories);
+    renderTable(theories, state.activeTheories, cases, state.activeCases, caseTheories);
     renderCircle(theories, state.currentCircleTheory, cases, state.activeCases, caseTheories);
   }
 }
@@ -92,6 +171,10 @@ window.hideTip = hideTip;
 
 document.querySelectorAll('.view-btn').forEach(btn => {
   btn.addEventListener('click', () => switchView(btn.dataset.view));
+});
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchMode(btn.dataset.mode));
 });
 
 document.getElementById('zoomOut').addEventListener('click', () => {
@@ -145,7 +228,9 @@ document.addEventListener('touchstart', function(e) {
 // ===== Init =====
 buildLegend(theories, state.activeTheories, toggleTheory, showModal);
 buildCaseBar();
+buildFilmBar();
 renderTimeline(theories, state.activeTheories, cases, state.activeCases, caseTheories);
 renderCircleSelector(theories, state.currentCircleTheory, selectCircleTheory);
 renderCircle(theories, state.currentCircleTheory, cases, state.activeCases, caseTheories);
 renderTable(theories, state.activeTheories, cases, state.activeCases, caseTheories);
+switchMode(state.mode);

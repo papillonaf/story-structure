@@ -585,4 +585,127 @@ html, body {
   .timeline-case-header { padding-left: 80px; font-size: 0.52rem; }
   .case-btn { font-size: 0.6rem; padding: 3px 6px; }
   .case-bar-label { font-size: 0.6rem; }
+  .mode-btn { min-width: 0; padding: 8px 14px; }
+  .mode-sub { display: none; }
+}
+
+/* ===== Mode Switcher ===== */
+.mode-switcher {
+  display: flex;
+  gap: 10px;
+  padding: 10px 24px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  justify-content: center;
+  background: var(--surface);
+}
+
+.mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 22px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif;
+  transition: all 0.2s ease;
+  min-width: 210px;
+  text-align: left;
+}
+
+.mode-btn:hover {
+  background: var(--surface2);
+}
+
+.mode-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.mode-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mode-main {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+
+.mode-sub {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  opacity: 0.65;
+  font-weight: 300;
+  white-space: nowrap;
+}
+
+.mode-btn.active[data-mode="film"] {
+  background: rgba(225, 107, 140, 0.10);
+  border-color: #E16B8C;
+}
+.mode-btn.active[data-mode="film"] .mode-main { color: #E16B8C; }
+
+.mode-btn.active[data-mode="theory"] {
+  background: rgba(0, 137, 167, 0.10);
+  border-color: #0089A7;
+}
+.mode-btn.active[data-mode="theory"] .mode-main { color: #0089A7; }
+
+/* ===== Film Bar ===== */
+.film-bar {
+  display: none;
+  gap: 10px;
+  padding: 10px 24px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.film-bar.visible { display: flex; }
+
+.film-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif;
+  transition: all 0.2s ease;
+  min-width: 150px;
+  flex-shrink: 0;
+}
+
+.film-card:hover { border-color: var(--text-dim); background: var(--surface2); }
+
+.film-card-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.film-card-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.film-card-meta {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  font-weight: 300;
 }
